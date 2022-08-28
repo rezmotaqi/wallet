@@ -1,0 +1,33 @@
+TODOs
+
+
+Long Vision:
+
+1- Transfer user friendship connections to graph database
+
+
+
+
+
+
+
+
+
+
+
+
+Short Vision:
+
+1- Add scheduled task to delete rejected friend requests when specific amount of time is passed ==> temporarily deleted
+2- Add background job to endpoints that changes basic_info of user, that is used other collections ==>
+    Collections with user data(other than id): skills, friends, notifications, posts, events, workshops, stages, booths
+3- add logging system
+4- replace --reload with --worker in production
+5- google social login package is not async, use async package if exists or do manually
+6- Add scheduled task to update user data in comments
+    1- if user status  is changed to deleted, comment status must be changed to deleted and also, user status in comment
+        must be changed to deleted
+    2- if user changes profile data, user data in comment must be updated
+    3- if one of the first 3 comments which is copied to post, changes the copied version in post must change too.
+    4- update user data in skill. if user data is changed after adding skills then user data in skills must be updated
+        which is used for friend suggestion end point

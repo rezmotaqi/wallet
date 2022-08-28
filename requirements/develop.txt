@@ -1,0 +1,5 @@
+-r base.txt
+
+uvicorn[standard]
+pylint
+ipython

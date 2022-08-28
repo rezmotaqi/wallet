@@ -1,0 +1,49 @@
+stages:
+  - dev-deploy
+  - stage-deploy
+
+docker-build-develop:
+  # Use the official docker image.
+  stage: dev-deploy
+  only:
+    - develop
+  tags:
+    - dev
+  variables:
+    KAVENEGAR_API_KEY: "$KAVENEGAR_API_KEY"
+    MAILGUN_KEY: "$MAILGUN_KEY"
+    FQDN: "$DEVELOP_FQDN"
+    DASH: "$DEVELOP_DASH"
+  script:
+    - echo "KAVENEGAR_API_KEY="$KAVENEGAR_API_KEY"" >> .env
+    - echo "MAILGUN_KEY="$MAILGUN_KEY"" >> .env
+    - echo "FQDN="$FQDN"" >> .env
+    - echo "DASH="$DASH"" >> .env
+#    - docker compose build
+    - docker compose up -d
+    - docker compose restart heisenberg-core
+    - sleep 5
+    - docker compose ps
+
+docker-build-main:
+  # Use the official docker image.
+  stage: stage-deploy
+  only:
+    - main
+  tags:
+    - stage
+  variables:
+    KAVENEGAR_API_KEY: "$KAVENEGAR_API_KEY"
+    MAILGUN_KEY: "$MAILGUN_KEY"
+    FQDN: "$MAIN_FQDN"
+    DASH: "$MAIN_DASH"
+  script:
+    - echo "KAVENEGAR_API_KEY="$KAVENEGAR_API_KEY"" >> .env
+    - echo "MAILGUN_KEY="$MAILGUN_KEY"" >> .env
+    - echo "FQDN="$FQDN"" >> .env
+    - echo "DASH="$DASH"" >> .env
+    #    - docker compose build
+    - docker compose up -d
+    - docker compose restart heisenberg-core
+    - sleep 5
+    - docker compose ps

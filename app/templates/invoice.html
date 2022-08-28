@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="pdfkit-page-size" content="{{ page_config.page_size.name }}" />
+  <meta name="pdfkit-orientation" content="{{ page_config.page_orientation.name }}" />
+  <title>فاکتور {{ invoice.title }}</title>
+</head>
+
+<body dir="rtl">
+  {% if invoice.invoice_type == 'TEST' %}
+  <!-- ADD FLAG FOR THIS ELEMENT -->
+  <div
+    style="position: absolute; width: 100%; height: 35vh; letter-spacing: 0.2rem;color: rgba(0, 0, 0, 0.30); font-size: 25rem; text-align: center;">
+    آزمایشی
+  </div>
+  {% else %}
+  <div style="width: 98vw; margin: auto">
+    <div class="border">
+      <!-- 1 -->
+      <table class="no-border" style="width: 100%">
+        <caption>
+          صورتحساب الکترونیکی خرید / فروش کالا و خدمات
+        </caption>
+        <tbody>
+          <tr>
+            <th style="width: 16.66%; text-align: right; padding-right: 0.5rem">
+              شماره سریال:
+            </th>
+            <td style="
+                  width: 16.66%;
+                  text-align: left;
+                  padding-left: 0.5rem;
+                  border-left: 1px solid black;
+                " class="invoice_serial">
+              {{ invoice.serial_header.serial_number }}
+            </td>
+            <th style="width: 16.66%; text-align: right; padding-right: 0.5rem">
+              شماره مالیاتی:
+            </th>
+            <td style="
+                  width: 16.66%;
+                  text-align: left;
+                  padding-left: 0.5rem;
+                  border-left: 1px solid black;
+                ">
+              {{ invoice.serial_header.tax_number }}
+            </td>
+            <th style="width: 16.66%; text-align: right; padding-right: 0.5rem">
+              تاریخ:
+            </th>
+            <td style="width: 16.66%; text-align: left; padding-left: 0.5rem">
+              {{ invoice.invoice_date|gregorian_to_jalali|en_to_persian_numb
+              }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- 2 -->
+      <table class="no-border" style="width: 100%">
+        <tbody>
+          <tr>
+            <th style="
+                  border-top: 1px solid black;
+                  border-bottom: 1px solid black;
+                  width: 25%;
+                  text-align: right;
+                ">
+              سریال حافظه مالیاتی:
+            </th>
+            <td style="
+                  border-top: 1px solid black;
+                  border-bottom: 1px solid black;
+                  width: 25%;
+                  text-align: left;
+
+                  border-left: 1px solid black;
+                ">
+              {{ invoice.serial_header.fiscal_serial_number }}
+            </td>
+            <th style="
+                  border-top: 1px solid black;
+                  border-bottom: 1px solid black;
+                  width: 25%;
+                  text-align: right;
+                ">
+              سریال پایانه فروشگاهی:
+            </th>
+            <td style="
+                  border-top: 1px solid black;
+                  border-bottom: 1px solid black;
+                  width: 25%;
+                  text-align: left;
+                ">
+              {{
+              invoice.serial_header.store_termial_serial_number|en_to_persian_numb
+              }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- 3 -->
+      <table class="no-border" style="width: 100%">
+        <tbody>
+          <tr>
+            <th style="width: 16.66%; text-align: right; padding-right: 0.5rem">
+              وضعیت:
+            </th>
+            <td style="
+                  width: 16.66%;
+                  text-align: left;
+                  padding-left: 0.5rem;
+                  border-left: 1px solid black;
+                ">
+              {{ invoice.status }}
+            </td>
+            <th style="width: 16.66%; text-align: right; padding-right: 0.5rem">
+              بابت:
+            </th>
+            <td style="
+                  width: 16.66%;
+                  text-align: left;
+                  padding-left: 0.5rem;
+                  border-left: 1px solid black;
+                ">
+              {{ invoice.title }}
+            </td>
+            <th style="width: 16.66%; text-align: right; padding-right: 0.5rem">
+              تعداد اقلام:
+            </th>
+            <td style="width: 16.66%; text-align: left; padding-left: 0.5rem">
+              {{ invoice["items"]|length|en_to_persian_numb }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="border" style="margin-top: 1rem">
+      <table style="width: 100%">
+        <tbody>
+          <tr>
+            <th style="width: 50%; border-left: 1px solid black">
+              مشخصات فروشنده
+            </th>
+            <th style="width: 50%">مشخصات خریدار</th>
+          </tr>
+        </tbody>
+      </table>
+      <table class="info" style="width: 100%; border-top: 1px solid black; padding: 5px">
+        <tbody>
+          <tr>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              نام شخص حقیقی/حقوقی:
+            </th>
+            <td style="
+                  width: auto;
+                  text-align: right;
+                  padding-left: 0.5rem;
+                  border-left: 1px solid black;
+                ">
+              {{ invoice.seller_info.name }}
+            </td>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              نام شخص حقیقی/حقوقی:
+            </th>
+            <td style="width: auto; text-align: right; padding-left: 0.5rem">
+              {{ invoice.buyer_info.name }}
+            </td>
+          </tr>
+          <tr>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              شماره/شناسه ملی:
+            </th>
+            <td style="
+                  width: auto;
+                  text-align: right;
+                  padding-left: 0.5rem;
+                  border-left: 1px solid black;
+                ">
+              {{ invoice.seller_info.national_code|en_to_persian_numb }}
+            </td>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              شماره/شناسه ملی:
+            </th>
+            <td style="width: auto; text-align: right; padding-left: 0.5rem">
+              {{ invoice.buyer_info.national_code|en_to_persian_numb }}
+            </td>
+          </tr>
+          <tr>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              شماره ثبتی:
+            </th>
+            <td style="
+                  width: auto;
+                  text-align: right;
+                  padding-left: 0.5rem;
+                  border-left: 1px solid black;
+                ">
+              {{ invoice.seller_info.register_number|en_to_persian_numb }}
+            </td>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              شماره ثبتی:
+            </th>
+            <td style="width: auto; text-align: right; padding-left: 0.5rem">
+              {{ invoice.buyer_info.register_number|en_to_persian_numb }}
+            </td>
+          </tr>
+          <tr>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              شماره اقتصادی:
+            </th>
+            <td style="
+                  width: auto;
+                  text-align: right;
+                  padding-left: 0.5rem;
+                  border-left: 1px solid black;
+                ">
+              {{ invoice.seller_info.economic_code|en_to_persian_numb }}
+            </td>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              شماره اقتصادی:
+            </th>
+            <td style="width: auto; text-align: right; padding-left: 0.5rem">
+              {{ invoice.buyer_info.economic_code|en_to_persian_numb }}
+            </td>
+          </tr>
+          <tr>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              شماره تلفن/نمابر:
+            </th>
+            <td style="
+                  width: auto;
+                  text-align: right;
+                  padding-left: 0.5rem;
+                  border-left: 1px solid black;
+                ">
+              {{ invoice.seller_info.phone|en_to_persian_numb }}
+            </td>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              شماره تلفن/نمابر:
+            </th>
+            <td style="width: auto; text-align: right; padding-left: 0.5rem">
+              {{ invoice.buyer_info.phone|en_to_persian_numb }}
+            </td>
+          </tr>
+          <tr>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              نشانی کامل:
+            </th>
+            <td style="
+                  width: auto;
+                  text-align: right;
+                  padding-left: 0.5rem;
+                  border-left: 1px solid black;
+                ">
+              {{ invoice.seller_info.province }} - {{ invoice.seller_info.city
+              }}
+            </td>
+            <th style="width: 13.5%; text-align: right; padding-right: 0.5rem">
+              نشانی کامل:
+            </th>
+            <td style="width: auto; text-align: right; padding-left: 0.5rem">
+              {{ invoice.buyer_info.province }} - {{ invoice.buyer_info.city
+              }}
+            </td>
+          </tr>
+          <tr>
+            <td style="
+                  width: 50%;
+                  text-align: right;
+                  border-left: 1px solid black;
+                  padding-right: 0.5rem;
+                " colspan="2">
+              <!-- <span style="font-size: 0.8rem">نشانی:</span> -->
+              {{ invoice.seller_info.address }} - کد پستی: {{
+              invoice.seller_info.postal_code|en_to_persian_numb }}
+            </td>
+            <td style="width: 50%; text-align: right; padding-right: 0.5rem" colspan="3">
+              <!-- <span style="font-size: 0.8rem">نشانی:</span> -->
+              {{ invoice.buyer_info.address }} - کد پستی: {{
+              invoice.buyer_info.postal_code|en_to_persian_numb }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="border" style="margin-top: 1rem">
+      <table class="item" style="width: 100%">
+        <div style="
+              text-align: center;
+              font-size: 0.8rem;
+              font-weight: 600;
+              padding: 5px;
+            ">
+          <!-- border-bottom: 1px solid black; -->
+          اقلام فاکتور
+        </div>
+        <thead>
+          <tr>
+            <th style="border-right: 0">ردیف</th>
+            <th style="max-width: 5%; width: 5%">شناسه</th>
+            <th style="max-width: 25%; width: 25%">شرح کالا/خدمات</th>
+            <th style="max-width: 2%">تعداد</th>
+            <th>واحد</th>
+            <th>مبلغ‌واحد</th>
+            <th>مبلغ‌کل</th>
+            <th style="max-width: 5%; width: 5%">مبلغ‌تخفیف</th>
+            <th>مبلغ‌کل بعداز تخفیف</th>
+            <th>جمع مالیات و عوارض ارزش افزوده</th>
+            <th style="border-left: 0">
+              جمع مبلغ کل بعلاوه جمع مالیات و ارزش افزوده
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in invoice['items'] %}
+          <tr>
+            <!--  -->
+            <td style="text-align: center; border-right: 0">
+              {{ loop.index|en_to_persian_numb }}
+            </td>
+            <td style="text-align: center;">{{ item.item_code|en_to_persian_numb }}</td>
+            <td style="text-align: right">
+              {{ item.item_name|en_to_persian_numb }}
+            </td>
+            <td style="text-align: center;">{{ item.item_qty|int|en_to_persian_numb }}</td>
+            <td style="text-align: center;">{{ item.item_unit|translate_definitions|en_to_persian_numb }}</td>
+            <td style="text-align: center;">{{ item.item_price|int|price_format|en_to_persian_numb }}</td>
+            <td style="text-align: center;">
+              {{ item.item_total_price|int|price_format|en_to_persian_numb }}
+            </td>
+            <td style="text-align: center;">{{ item.item_discount|int|price_format|en_to_persian_numb }}</td>
+            <td style="text-align: center;">
+              {{
+              item.item_total_price_after_discount|int|price_format|en_to_persian_numb
+              }}
+            </td>
+            <td style="text-align: center; width: 0">
+              {{ item.item_total_taxes_price|int|price_format|en_to_persian_numb }}
+            </td>
+            <td style="text-align: center; border-left: 0">
+              {{ item.item_final_price|int|price_format|en_to_persian_numb }}
+            </td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="8" style="text-align: left;">
+              <strong>جمع کل</strong>
+            </td>
+            <td style="text-align: center;">
+              {{
+              invoice.total_prices_after_discount|int|price_format|en_to_persian_numb
+              }}
+            </td>
+            <td style="text-align: center;">
+              {{ invoice.total_tax|int|price_format|en_to_persian_numb }}
+            </td>
+            <th style="text-align: center; border-left: 0;">
+              <strong>
+                {{ invoice.total_final_price|int|price_format|en_to_persian_numb }}
+              </strong>
+            </th>
+          </tr>
+          <tr>
+            <td colspan="8" style="text-align: left;">
+              <strong>مجموع قیمت به حروف:</strong>
+            </td>
+            <td colspan="3" style="border-left: 0;">
+              {{ invoice.total_final_price|int|to_persian_words }} ریال
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="item" style="width: 100%; border-collapse: collapse">
+        <tbody>
+          <tr>
+            <!--  -->
+            <td style="
+                  border-top: 0;
+                  border-right: 0;
+                  text-align: center;
+                  max-width: 13%;
+                  width: 13%;
+                " rowspan="4" colspan="2">
+              {{ brand.logo }}
+              <div style="
+                    border-top: 0;
+                    font-size: small;
+                    display: block;
+                    padding-top: 0.2rem;
+                    letter-spacing: 0.1rem;
+                  ">
+                {{ brand.title }}
+              </div>
+            </td>
+            <!--  -->
+            <td style="border-top: 0; border-left: 0; text-align: center" rowspan="4" colspan="1" style="
+                  border-top: 0;
+                  border-right: 0;
+                  max-width: 13%;
+                  width: 13%;
+                ">
+              <!-- {{ qrcode }} -->
+              <img class="qr-code" src="data:image/png;base64, {{ qrcode }}" />
+            </td>
+            <!--  -->
+            <th rowspan="5" colspan="2" style="border-top: 0; width: 20px; max-width: 20px">
+              توضیحات:
+            </th>
+            <td rowspan="5" colspan="4" style="
+                  border-top: 0;
+                  border-right: 0;
+                  border-left: 0;
+                  text-align: right;
+                  font-size: 0.65rem;
+                  top: 0;
+                  width: 113px;
+                  max-width: 113px;
+                ">
+              {{ invoice.notes }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <tbody>
+          <tr>
+            <th style="height: 5rem">مهر / امضا فروشنده</th>
+            <th style="height: 5rem">مهر / امضا خریدار</th>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</body>
+<script type="text/javascript"></script>
+
+</html>

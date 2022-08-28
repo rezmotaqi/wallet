@@ -1,0 +1,76 @@
+version: '3'
+services:
+  heisenberg-core:
+    restart: always
+    container_name: "heisenberg-core"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - "./:/usr/app/core"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/home/media:/media"
+    command: uvicorn app.main:app --reload --loop asyncio --host heisenberg-core
+    env_file:
+      - .env
+    networks:
+      - public
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  mongo-heisenberg:
+    restart: always
+    container_name: "mongo-heisenberg"
+    image: "$MONGO_IMAGE"
+    volumes:
+      - '/database:/data/db'
+    networks:
+      - public
+    ports:
+      - "127.0.0.1:27017:27017"
+
+  redis-heisenberg:
+    restart: always
+    container_name: "redis-heisenberg"
+    image: "redis"
+    networks:
+      - public
+
+#  nginx:
+#    volumes:
+#      - "/home/web_app:/usr/src/app"
+#      - "/home/dash_app:/usr/src/dash-app"
+#      - "/home/media:/media"
+#      - "./nginx_conf/nginx.conf:/etc/nginx/user.conf.d/nginx.conf:ro"
+#      - "./nginx_conf/mime.types:/etc/nginx/mime.types:ro"
+#      - "letsencrypt:/etc/letsencrypt"
+#    restart: always
+#    image: staticfloat/nginx-certbot
+#    ports:
+#      - 80:80/tcp
+#      - 443:443/tcp
+#    environment:
+#      CERTBOT_EMAIL: ali.hallaji1@gmail.com
+#      # variable names are space-separated
+#      ENVSUBST_VARS: FQDN DASH
+#      FQDN: "$FQDN"
+#      DASH: "$DASH"
+#    #      FQDN: dev.netall.live
+#    #      DASH: devback.netall.live
+#    container_name: heisenbergWebServer
+#    networks:
+#      - public
+  # quasar:
+  #   build:
+  #     context: .
+  #     target: 'develop-stage'
+  #   volumes:
+  #   - '/web_app:/app/web_app'
+  #   command: /bin/sh -c "cp -dpr dist/spa/* web_app/"
+
+volumes:
+  letsencrypt:
+
+networks:
+  public:
+    external: true
