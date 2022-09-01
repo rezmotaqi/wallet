@@ -12,7 +12,7 @@ from pydantic.main import BaseConfig
 class Settings(BaseSettings):
     """Base settings model for usersapi."""
 
-    PROJECT_NAME: str = "heisenberg_core"
+    PROJECT_NAME: str = "wallet"
     ROOT_USER: str = "root"
     ROOT_PASSWORD: str = "12345678"
 
@@ -79,10 +79,10 @@ class Settings(BaseSettings):
     MONGO_PORT: str = "27017"
     MONGO_USERNAME: Optional[str] = None
     MONGO_PASSWORD: Optional[str] = None
-    MONGO_DATABASE: str = "heisenberg"
+    MONGO_DATABASE: str = "wallet"
 
     REDIS_PORT: str = "6379"
-    REDIS_HOSTNAME: str = "redis-heisenberg"
+    REDIS_HOSTNAME: str = "wallet-redis"
     REDIS_USERNAME: Optional[str] = None
     REDIS_PASSWORD: Optional[str] = None
     REDIS_DATABASE: Optional[str] = None

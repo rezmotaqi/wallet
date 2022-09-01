@@ -1,8 +1,8 @@
 version: '3'
 services:
-  heisenberg-core:
+  wallet:
     restart: always
-    container_name: "heisenberg-core"
+    container_name: "wallet"
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,7 +10,7 @@ services:
       - "./:/usr/app/core"
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "/home/media:/media"
-    command: uvicorn app.main:app --reload --loop asyncio --host heisenberg-core
+    command: uvicorn app.main:app --reload --loop asyncio --host wallet
     env_file:
       - .env
     networks:
@@ -18,9 +18,9 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
 
-  mongo-heisenberg:
+  wallet-mongo:
     restart: always
-    container_name: "mongo-heisenberg"
+    container_name: "wallet-mongo"
     image: "$MONGO_IMAGE"
     volumes:
       - '/database:/data/db'
@@ -29,9 +29,9 @@ services:
     ports:
       - "127.0.0.1:27017:27017"
 
-  redis-heisenberg:
+  wallet-redis:
     restart: always
-    container_name: "redis-heisenberg"
+    container_name: "wallet-redis"
     image: "redis"
     networks:
       - public

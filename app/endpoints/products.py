@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.core import depends
+from app.schemas.products import ProductInput
 from app.schemas.users import User
 
 router = APIRouter()
@@ -16,10 +17,13 @@ router = APIRouter()
 async def create(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
-        current_user: User = Depends(depends.permissions(["authenticated"])),
+        current_user: User = Depends(depends.permissions(["authenticated", "admin"])),
+        data: ProductInput
 ):
     """
+    Admin
 
+    Create product
     """
 
     return
