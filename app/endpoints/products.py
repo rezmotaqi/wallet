@@ -3,6 +3,8 @@ Products apis
 route: /products
 """
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
@@ -25,6 +27,9 @@ async def create(
 
     Create product
     """
+
+    now = datetime.now()
+    result = await db.products
 
     return
 

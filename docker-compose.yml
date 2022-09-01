@@ -23,7 +23,7 @@ services:
     container_name: "wallet-mongo"
     image: "$MONGO_IMAGE"
     volumes:
-      - '/database:/data/db'
+      - '/database/w:/data/db'
     networks:
       - public
     ports:
