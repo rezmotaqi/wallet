@@ -84,11 +84,33 @@ class ProductInput(Model):
     # category: str = Field()
 
 
+class ProductPartialUpdate(Model):
+    """
+    Pydantic schema for creating product
+    """
+
+    farsi_name: Optional[str] = Field()
+    english_name: Optional[str] = Field()
+    slug: Optional[str] = Field()
+    tab_title: Optional[str] = Field()
+    keywords: Optional[List[str]] = Field()
+    publish_date: Optional[DateTime] = Field()
+    price: Optional[int] = Field()
+    price_update_date: Optional[DateTime] = Field()
+    is_active: Optional[bool] = Field()
+    is_available: Optional[bool] = Field()
+    traits: Optional[List[ProductTrait]] = Field()
+    guarantees: Optional[List[ProductGuaranteeInProduct]] = Field()
+    stock: Optional[int] = Field(gt=0)
+    discount_percent: Optional[int] = Field(description="product internal discount")
+    images: Optional[List[str]] = Field()
+
+
 class ProductOutput(Model):
     """
     Pydantic schema for returning product
     """
-
+    id: ObjectId = Field()
     farsi_name: Optional[str] = Field()
     english_name: str = Field()
     slug: Optional[str] = Field()
@@ -111,5 +133,5 @@ class ProductListOutput(Model):
     Pydantic schema for list of guarantees
     """
 
-    products: List[ProductOutput] = Field()
-    count: int = Field()
+    products: List[ProductOutput] = Field(default=[])
+    count: int = Field(default=0)

@@ -131,6 +131,19 @@ def create_mongo_array_update(key: str, data: Dict) -> Dict:
     return return_data
 
 
+async def serve_nested_to_root(incoming_info_dict: Dict) -> Dict:
+    """Serving nested information"""
+
+    returning_info_dict = {}
+    for field, value in incoming_info_dict.items():
+        if type(value) is dict:
+            for (nested_field, nested_value) in value.items():
+                returning_info_dict.update({f'{field}.{nested_field}': nested_value})
+        else:
+            returning_info_dict.update({f'{field}': value})
+    return returning_info_dict
+
+
 async def async_loop(
         function: Callable = move_image_from_temp,
         item: str = "logo",
