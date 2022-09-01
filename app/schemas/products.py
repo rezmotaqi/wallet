@@ -78,6 +78,7 @@ class ProductInput(Model):
     discount_percent: Optional[int] = Field(description="product internal discount")
     images: Optional[List[str]] = Field()
 
+    # TODO saman what are these fields??
     # model: str = Field()
     # tags: stock = Field()
     # category: str = Field()
@@ -93,14 +94,14 @@ class ProductOutput(Model):
     slug: Optional[str] = Field()
     tab_title: Optional[str] = Field()
     keywords: List[str] = Field()
-    publish_date: DateTime = Field()
+    publish_date: DateTime = Field(description="تاریخ انتشار محصول")
     price: int = Field()
     price_update_date: DateTime = Field()
     is_active: bool = Field()
     is_available: bool = Field()
-    traits: Optional[List[ProductTrait]] = Field()
+    traits: Optional[List[ProductTrait]] = Field(description="ویژگی ها محصول")
     guarantees: Optional[List[ProductGuaranteeInProduct]] = Field()
-    stock: int = Field(gt=0)
+    stock: int = Field(gt=0, description="تعداد موجودی محصول")
     discount_percent: Optional[int] = Field(description="product internal discount")
     images: Optional[List[str]] = Field()
 
