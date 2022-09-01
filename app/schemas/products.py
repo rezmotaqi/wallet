@@ -135,3 +135,13 @@ class ProductListOutput(Model):
 
     products: List[ProductOutput] = Field(default=[])
     count: int = Field(default=0)
+
+
+class CartOutput(Model):
+    """
+    Pydantic schema for returning user's cart
+    """
+
+    count: int = Field(default=0)
+    items: List[ProductOutput] = Field()
+    owner_id: ObjectId = Field()
