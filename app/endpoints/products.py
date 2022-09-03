@@ -7,58 +7,106 @@ from typing import Optional, List
 
 from bson import ObjectId as BaseObjectId
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo.errors import DuplicateKeyError
 from starlette import status
 from starlette.responses import Response
 
 from app.core import depends
+from app.core.products import validate_guarantees
 from app.core.utils import serve_nested_to_root
 from app.schemas.base import DateOrderBy, ObjectId
-from app.schemas.products import ProductInput, ProductListOutput, ProductOutput, ProductPartialUpdate, CartOutput
+from app.schemas.products import (
+    ProductInput,
+    ProductListOutput,
+    ProductOutput,
+    ProductPartialUpdate,
+    CartOutput,
+    ProductGuaranteeInput
+)
 from app.schemas.users import User
 
 router = APIRouter()
 
 
+@router.post('/guarantees', status_code=status.HTTP_201_CREATED)
+async def create_guarantee(
+        *,
+        db: AsyncIOMotorDatabase = Depends(depends.get_database),
+        current_user: User = Depends(depends.permissions(["authenticated", "admin"])),
+        data: ProductGuaranteeInput
+
+):
+    """
+    Admin
+
+    Create product guarantee
+    """
+    now = datetime.now()
+    data = {**data.dict(), 'created_at': now, 'updated_at': now, 'owner_id': BaseObjectId(current_user.id)}
+    result = await db.gurantees.insert_one(data)
+    if not result.acknowledged:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not create guarantee."
+        )
+
+    return Response(status_code=status.HTTP_201_CREATED)
+
+
+@router.get('/guarantees', response_model=)
+async def get_list_of_guarantees(
+        *,
+        db: AsyncIOMotorDatabase = Depends(depends.get_database),
+        current_user: User = Depends(depends.permissions(["authenticated", "admin"])),
+        offset: Optional[int] = 0,
+        limit: Optional[int] = 20,
+):
+    """
+    Admin
+
+    Get guarantee
+    """
+    guarantees = await db.gurantees.find({}).skip(offset * limit).to_list(length=limit)
+    if not guarantees:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not create guarantee."
+        )
+
+
+
+    return
+
+
 @router.post('/cart', status_code=status.HTTP_204_NO_CONTENT)
-async def modify_cart(
+async def add_product_to_cart(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
         current_user: User = Depends(depends.permissions(["authenticated"])),
-        product_ids: List[ObjectId]
+        product_id: ObjectId,
+        guarantee_id: Optional[ObjectId]
 ):
     """
     Client
 
-    Modify cart, products in carts are updated based on provided list of product ids
+    Add product to cart
     """
 
     now = datetime.now()
 
-    products = await db.products.find(
-        {'_id': {'$in': product_ids}}
-    ).to_list(length=None)
+    # TODO wallet only query necessary fields based on what data is needed in cart and factor
+    query = {'_id': product_id}
+    if guarantee_id:
+        query['guarantee.id'] = guarantee_id
+    product = await db.products.find_one(query, {'english_name': 1, 'price': 1, 'guarantee.$.id': guarantee_id})
 
-    if not products:
+    if not product:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Products were not found."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product was not found with the provided ids."
         )
-
-    # check if all of the provided product ids are found
-    found_product_ids = [product['_id'] for product in products]
-    invalid_product_ids = []
-    for i in product_ids:
-        if i not in found_product_ids:
-            invalid_product_ids.append(i)
-
-    if invalid_product_ids:
-        return Response(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content=invalid_product_ids
-        )
-
     result = await db.carts.update_one(
         {'owner_id': BaseObjectId(current_user.id)},
         {
@@ -67,9 +115,9 @@ async def modify_cart(
                 'created_at': now
             },
             '$set': {
-                'items': products,
                 'updated_at': now
-            }
+            },
+            '$addToSet': {'items': product}
         },
         upsert=True,
     )
@@ -84,7 +132,7 @@ async def modify_cart(
 
 
 @router.get('/cart/{user_id}', response_model=CartOutput)
-async def get_cart(
+async def get_user_cart(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
         current_user: User = Depends(depends.permissions(["authenticated"])),
@@ -108,7 +156,7 @@ async def get_cart(
 
 
 @router.post('', status_code=status.HTTP_201_CREATED)
-async def create(
+async def create_product(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
         current_user: User = Depends(depends.permissions(["authenticated", "admin"])),
@@ -135,7 +183,7 @@ async def create(
 
 
 @router.get('', response_model=ProductListOutput)
-async def get(
+async def get_list_of_products(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
         current_user: User = Depends(depends.permissions(["authenticated"])),
@@ -179,7 +227,7 @@ async def get(
 
 
 @router.patch('/{product_id}', status_code=status.HTTP_204_NO_CONTENT)
-async def partial_update(
+async def partial_update_product(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
         current_user: User = Depends(depends.permissions(["authenticated", "admin"])),
@@ -193,6 +241,9 @@ async def partial_update(
     Partial update product
     """
     data = await serve_nested_to_root(data.dict(exclude_unset=True))
+    if data.get('guarantees'):
+        await validate_guarantees(db, data.get('guarantees'))
+
     result = await db.products.update_one({'_id': product_id}, {'$set': {**data, 'updated_at': datetime.now()}})
 
     if not result.acknowledged:
@@ -229,7 +280,7 @@ async def get_single_product(
 
 
 @router.delete('/{product_id}', status_code=status.HTTP_204_NO_CONTENT)
-async def delete(
+async def delete_product(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
         current_user: User = Depends(depends.permissions(["authenticated", "admin"])),

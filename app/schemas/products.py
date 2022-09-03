@@ -21,6 +21,7 @@ class ProductGuaranteeOutput(Model):
     Pydantic schema for returning guarantees
     """
 
+    id: ObjectId = Field()
     name: str = Field()
     price: int = Field()
     expire_duration: int = Field(description="amount of time in days")
@@ -145,3 +146,4 @@ class CartOutput(Model):
     count: int = Field(default=0)
     items: List[ProductOutput] = Field()
     owner_id: ObjectId = Field()
+
