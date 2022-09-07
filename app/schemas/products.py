@@ -74,7 +74,6 @@ class ProductInput(Model):
     is_active: bool = Field()
     is_available: bool = Field()
     traits: Optional[List[ProductTrait]] = Field()
-    guarantees: Optional[List[ProductGuaranteeInProduct]] = Field()
     stock: int = Field(gt=0)
     discount_percent: Optional[int] = Field(description="product internal discount")
     images: Optional[List[str]] = Field()

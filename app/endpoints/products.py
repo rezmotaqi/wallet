@@ -23,7 +23,7 @@ from app.schemas.products import (
     ProductOutput,
     ProductPartialUpdate,
     CartOutput,
-    ProductGuaranteeInput
+    ProductGuaranteeInput, ProductGuaranteeListOutput, ProductGuaranteeOutput
 )
 from app.schemas.users import User
 
@@ -45,7 +45,7 @@ async def create_guarantee(
     """
     now = datetime.now()
     data = {**data.dict(), 'created_at': now, 'updated_at': now, 'owner_id': BaseObjectId(current_user.id)}
-    result = await db.gurantees.insert_one(data)
+    result = await db.guarantees.insert_one(data)
     if not result.acknowledged:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -55,7 +55,7 @@ async def create_guarantee(
     return Response(status_code=status.HTTP_201_CREATED)
 
 
-@router.get('/guarantees', response_model=)
+@router.get('/guarantees', response_model=ProductGuaranteeListOutput)
 async def get_list_of_guarantees(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
@@ -66,18 +66,50 @@ async def get_list_of_guarantees(
     """
     Admin
 
-    Get guarantee
+    Get list of guarantees
     """
-    guarantees = await db.gurantees.find({}).skip(offset * limit).to_list(length=limit)
+    guarantees = await db.guarantees.find({}).skip(offset * limit).to_list(length=limit)
     if not guarantees:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Could not create guarantee."
         )
 
+    guarantees = list(map(lambda x: ProductGuaranteeOutput.parse_obj_id(x), guarantees))
+    count = await db.gurantees.count_documents({})
+    return ProductGuaranteeListOutput(count=count, guarantees=guarantees)
 
 
-    return
+@router.post('/guarantees/{product_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def add_guarantee_to_product(
+        *,
+        db: AsyncIOMotorDatabase = Depends(depends.get_database),
+        current_user: User = Depends(depends.permissions(["authenticated", "admin"])),
+        guarantee_id: ObjectId,
+        product_id: ObjectId
+):
+    """
+    Admin
+
+    Add guarantee to product
+    """
+
+    guarantee = await db.guarantees.find_one({'_id': guarantee_id})
+    if not guarantee:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Guarantee not found."
+        )
+    guarantee['id'] = guarantee_id
+    guarantee.pop('_id')
+    update_result = await db.products.update_one({'_id': product_id}, {'$addToSet': {'guarantees': guarantee}})
+    if not update_result.acknowledged:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not update product."
+        )
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post('/cart', status_code=status.HTTP_204_NO_CONTENT)
@@ -100,33 +132,16 @@ async def add_product_to_cart(
     query = {'_id': product_id}
     if guarantee_id:
         query['guarantee.id'] = guarantee_id
-    product = await db.products.find_one(query, {'english_name': 1, 'price': 1, 'guarantee.$.id': guarantee_id})
+        product = await db.products.find_one(query, {'english_name': 1, 'price': 1, 'guarantee.$.id': guarantee_id})
 
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Product was not found with the provided ids."
         )
-    result = await db.carts.update_one(
-        {'owner_id': BaseObjectId(current_user.id)},
-        {
-            '$setOnInsert': {
-                'owner_id': current_user.id,
-                'created_at': now
-            },
-            '$set': {
-                'updated_at': now
-            },
-            '$addToSet': {'items': product}
-        },
-        upsert=True,
-    )
 
-    if not result.acknowledged:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Basket was not updated successfully"
-        )
+
+    print(product)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -136,22 +151,21 @@ async def get_user_cart(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
         current_user: User = Depends(depends.permissions(["authenticated"])),
-        user_id: ObjectId,
+
 
 ):
     """
-    Admin and client
+    Client
 
     Get single product
     """
 
-    cart = await db.carts.find_one({'owner_id': BaseObjectId(current_user.id)})
+    cart = await db.users.find_one({'_id': BaseObjectId(current_user.id)}, {'cart': 1})
     if not cart:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cart not found."
         )
-
     return CartOutput.parse_obj(cart)
 
 
