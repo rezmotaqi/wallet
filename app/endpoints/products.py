@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Optional, List
 
 from bson import ObjectId as BaseObjectId
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo.errors import DuplicateKeyError
@@ -23,7 +23,9 @@ from app.schemas.products import (
     ProductOutput,
     ProductPartialUpdate,
     CartOutput,
-    ProductGuaranteeInput, ProductGuaranteeListOutput, ProductGuaranteeOutput
+    ProductGuaranteeInput,
+    ProductGuaranteeListOutput,
+    ProductGuaranteeOutput
 )
 from app.schemas.users import User
 
@@ -118,7 +120,7 @@ async def add_product_to_cart(
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
         current_user: User = Depends(depends.permissions(["authenticated"])),
         product_id: ObjectId,
-        guarantee_id: Optional[ObjectId]
+        guarantee_id: Optional[ObjectId] = None
 ):
     """
     Client
@@ -126,24 +128,21 @@ async def add_product_to_cart(
     Add product to cart
     """
 
-    now = datetime.now()
-
-    # TODO wallet only query necessary fields based on what data is needed in cart and factor
     query = {'_id': product_id}
+    projection = {'english_name': 1, 'price': 1}
+
     if guarantee_id:
         query['guarantee.id'] = guarantee_id
-        product = await db.products.find_one(query, {'english_name': 1, 'price': 1, 'guarantee.$.id': guarantee_id})
-
-    if not product:
+        projection['guarantee.$'] = guarantee_id
+    product = await db.products.find_one(query, projection)
+    user_result = await db.users.update_one(
+        {'_id': BaseObjectId(current_user.id)}, {'$addToSet': {'cart': product}}
+    )
+    if not user_result:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product was not found with the provided ids."
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not update cart."
         )
-
-
-    print(product)
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get('/cart/{user_id}', response_model=CartOutput)
@@ -155,9 +154,9 @@ async def get_user_cart(
 
 ):
     """
-    Client
+    User
 
-    Get single product
+    Get user cart
     """
 
     cart = await db.users.find_one({'_id': BaseObjectId(current_user.id)}, {'cart': 1})
