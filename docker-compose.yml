@@ -10,7 +10,7 @@ services:
       - "./:/usr/app/core"
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "/home/wallet/media:/media"
-    command: uvicorn app.main:app --reload --loop asyncio
+    command: uvicorn app.main:app --reload --loop asyncio --host wallet
     env_file:
       - .env
     networks:
@@ -40,43 +40,13 @@ services:
     image: nginx:1.19.7
     user: root
     restart: always
-    container_name: nginx
+    container_name: "nginx"
     volumes:
       - './nginx_conf/default.conf:/etc/nginx/conf.d/default.conf'
       - './nginx_conf/nginx.conf:/etc/nginx/user.conf.d/nginx.conf:ro'
       - '/home/wallet/media:/media'
     ports:
-      - 80:80
-
-
-#  nginx:
-#    volumes:
-#      - "/home/web_app:/usr/src/app"
-#      - "/home/dash_app:/usr/src/dash-app"
-#      - "/home/media:/media"
-#      - "./nginx_conf/nginx.conf:/etc/nginx/user.conf.d/nginx.conf:ro"
-#      - "./nginx_conf/mime.types:/etc/nginx/mime.types:ro"
-#      - "letsencrypt:/etc/letsencrypt"
-#    restart: always
-#    image: staticfloat/nginx-certbot
-#    ports:
-#      - 80:80/tcp
-#      - 443:443/tcp
-#    environment:
-#      CERTBOT_EMAIL: ali.hallaji1@gmail.com
-#      # variable names are space-separated
-#      ENVSUBST_VARS: FQDN DASH
-#      FQDN: "$FQDN"
-#      DASH: "$DASH"
-#    #      FQDN: dev.netall.live
-#    #      DASH: devback.netall.live
-#    container_name: heisenbergWebServer
-#    networks:
-#      - public
-
-
-volumes:
-  letsencrypt:
+      - "80:80"
 
 networks:
   public:
