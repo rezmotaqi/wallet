@@ -10,7 +10,7 @@ services:
       - "./:/usr/app/core"
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "/home/wallet/media:/media"
-    command: uvicorn app.main:app --reload --loop asyncio --host wallet
+    command: uvicorn app.main:app --reload --loop asyncio
     env_file:
       - .env
     networks:
@@ -23,7 +23,7 @@ services:
     container_name: "wallet-mongo"
     image: "$MONGO_IMAGE"
     volumes:
-      - '/database/w:/data/db'
+      - '../database:/data/db'
     networks:
       - public
     ports:
