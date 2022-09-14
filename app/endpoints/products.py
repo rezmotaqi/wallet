@@ -314,3 +314,93 @@ async def delete_product(
         )
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# import sys
+# from datetime import datetime
+#
+# import requests
+# from django.shortcuts import re   nder
+# from django.http import HttpResponse
+# from django.shortcuts import redirect
+# from zeep import Client
+#
+# from django.conf import settings
+#
+# from panel.models import Order
+# from sms.utils import send_order_notif_sms, send_order_notif_sms_to_customer
+#
+# MERCHANT = '67b4ca7f-e25f-4d39-bfb8-cdd4f39377f4'
+#
+# if not settings.TEST:
+#     client = Client('https://www.zarinpal.com/pg/services/WebGate/wsdl')
+#
+#
+# def send_request(request, orderpk):
+#     thisorder = Order.objects.get(pk=orderpk)
+#
+#     description = str(thisorder.order_id)  # "توضیحات مربوط به تراکنش را در این قسمت وارد کنید"
+#     email = thisorder.customer.user.email
+#     mobile = thisorder.customer.phone_number
+#     CallbackURL = settings.WEBSITE_URL + '/zarinpal/verify/' + str(
+#         thisorder.pk)  # Important: need to edit for real server.
+#
+#     amount = int(thisorder.final_price)
+#     thisorder.date_ordered = datetime.now()
+#     thisorder.payment_state = 'pending'
+#     thisorder.decrease_product_counts()
+#     thisorder.save()
+#
+#     result = client.service.PaymentRequest(MERCHANT, amount, description, email, mobile, CallbackURL)
+#     if result.Status == 100:
+#         return redirect('https://www.zarinpal.com/pg/StartPay/' + str(result.Authority))
+#     else:
+#         return HttpResponse('Error code: ' + str(result.Status))
+#
+#
+# def verify(request, orderpk):
+#     thisorder = Order.objects.get(pk=orderpk)
+#
+#     if request.GET.get('Status') == 'OK':
+#         result = client.service.PaymentVerification(MERCHANT, request.GET['Authority'], thisorder.final_price)
+#
+#         print(result)
+#
+#         if result.Status == 100:
+#             send_order_notif_sms(thisorder.order_id)
+#             send_order_notif_sms_to_customer(thisorder.customer.phone_number, result.RefID)
+#             thisorder.SaleReferenceId = result.RefID
+#             thisorder.payment_state = 'paid'
+#             thisorder.shipping_state = 'ordered'
+#             thisorder.save()
+#             try:
+#                 thisorder.discount_code.used += 1
+#                 thisorder.discount_code.save()
+#             except Exception as e:
+#                 # print(e)
+#                 pass
+#             context = {
+#                 'success': True,
+#                 'RefID': result.RefID
+#             }
+#             return render(request, 'store/transaction-return.html', context=context)
+#
+#         elif result.Status == 101:
+#             return HttpResponse('Transaction submitted : ' + str(result.Status))
+#
+#         else:
+#             thisorder.payment_state = 'failed'
+#             thisorder.undecrease_product_counts()
+#             thisorder.save()
+#             context = {
+#                 'success': False,
+#             }
+#             return render(request, 'store/transaction-return.html', context=context)
+#     else:
+#         thisorder.payment_state = 'failed'
+#         thisorder.undecrease_product_counts()
+#         thisorder.save()
+#         context = {
+#             'success': False,
+#         }
+#         return render(request, 'store/transaction-return.html', context=context)
