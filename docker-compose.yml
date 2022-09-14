@@ -16,7 +16,7 @@ services:
     networks:
       - public
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8001:8000"
 
   wallet-mongo:
     restart: always
@@ -27,7 +27,7 @@ services:
     networks:
       - public
     ports:
-      - "127.0.0.1:27017:27017"
+      - "127.0.0.1:27018:27017"
 
   wallet-redis:
     restart: always
