@@ -7,16 +7,16 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - "./:/usr/app/core"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "/home/wallet/media:/media"
+      - ./:/usr/app/core
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/wallet/media:/media
     command: uvicorn app.main:app --reload --loop asyncio --host wallet
     env_file:
       - .env
     networks:
       - public
     ports:
-      - "127.0.0.1:8001:8000"
+      - "0.0.0.0:8001:8000"
 
   wallet-mongo:
     restart: always
