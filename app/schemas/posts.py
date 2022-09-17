@@ -10,7 +10,6 @@ from pydantic import validator, root_validator
 from pydantic.fields import Field
 
 from app.schemas.base import Model, ObjectId, DateTime
-from app.schemas.general import UserType
 
 
 class PostsType(str, Enum):
@@ -68,39 +67,6 @@ class PostsStatus(str, Enum):
     REPORTED = 'REPORTED'
 
 
-class CommentUser(Model):
-    """
-    Pydantic schema for comment's user
-    """
-
-    id: Optional[ObjectId] = Field()
-    username: Optional[str] = Field()
-    first_name: Optional[str] = Field()
-    last_name: Optional[str] = Field()
-    company_name: Optional[str] = Field()
-    avatar: Optional[str] = Field()
-    user_type: Optional[UserType] = Field()
-
-
-class Comment(Model):
-    """
-    Pydantic schema for comment
-    """
-
-    id: Optional[ObjectId] = Field()
-    parent: Optional[List[ObjectId]] = Field()
-    post_id: Optional[ObjectId] = Field()
-    user: CommentUser = Field()
-    created_at: DateTime = Field()
-    text: str = Field()
-    status: CommentStatus = Field(default=CommentStatus.ACCEPTED.value)
-    reply_count: Optional[int] = Field(default=0)
-
-
-class PollChoicesIn(Model):
-    text: str = Field()
-
-
 class PostCategoryCreate(Model):
     """
     Schema for creating article category by admin
@@ -124,86 +90,25 @@ class PostCategoryListOut(Model):
     category_list: List[PostCategoryOut] = Field()
 
 
-class UserPostsCreate(Model):
+class RelatedPostDataInPost(Model):
     """
-    Schema for creating post by user
+    Pydantic schema for storing related post data in post
     """
-
-    title: Optional[str] = Field()
-    url: str = Field()
-    page_title: str = Field()
-
-
-    privacy: PostsPrivacySetting = Field()
-    post_type: PostsType = Field()
-    body: Optional[str] = Field()
-    category: Optional[str] = Field()
-    tags: Optional[List[str]] = Field()
-
-    images: Optional[List[str]] = Field()
-
-
-
-class UserPostUpdate(Model):
-    """
-    Schema for updating article post
-    """
-
-    category: Optional[str] = Field()
-    tags: Optional[List[str]] = Field()
-    title: Optional[str] = Field()
-
-    body: str = Field()
-    privacy: PostsPrivacySetting = Field()
-
-    images: Optional[List[str]] = Field()
-    video: Optional[str] = Field()
-
-    poll_status: Optional[PollStatus] = Field()
-
-
-class UserPostsPartialUpdate(Model):
-    """
-    Schema for partial updating post by user
-    """
-
-    category: Optional[str] = Field()
-    tags: Optional[List[str]] = Field()
-    title: Optional[str] = Field()
-
-    body: Optional[str] = Field()
-    privacy: Optional[PostsPrivacySetting] = Field()
-
-    images: Optional[List[str]] = Field()
-    video: Optional[str] = Field()
-
-    poll_status: Optional[PollStatus] = Field()
-
-
-class PollChoicesOut(Model):
-    """
-    Schema for returning poll choice
-    """
-
+    post_id: ObjectId = Field()
     text: str = Field()
-    choice_id: Optional[uuid.UUID] = Field()
-    vote_count: Optional[int] = Field()
 
 
-class PollChoicesOutFeed(Model):
+class RelatedProductDataInPost(Model):
     """
-    Schema for returning poll choice
+    Pydantic schema for storing related post data in post
     """
-
+    product_id: ObjectId = Field()
     text: str = Field()
-    choice_id: Optional[uuid.UUID] = Field()
-    vote_count: Optional[int] = Field()
-    voted: bool = Field(default=False)
 
 
-class UserNestedInPost(Model):
+class AuthorInPost(Model):
     """
-    Schema for nested user object in admin
+    Schema for nested user object in post
     """
 
     id: ObjectId = Field()
@@ -211,128 +116,147 @@ class UserNestedInPost(Model):
     first_name: Optional[str] = Field()
     last_name: Optional[str] = Field()
     avatar: Optional[str] = Field()
-    headline: Optional[str] = Field()
 
 
-class UserPostsOut(Model):
+class PostsCreate(Model):
+    """
+    Schema for creating post by user
+    """
+
+    title: Optional[str] = Field()
+    url: str = Field()
+    page_title: str = Field()
+    publish_date: DateTime = Field()
+    author: Optional[AuthorInPost] = Field()
+    reading_estimate: Optional[int] = Field()
+    summary: Optional[str] = Field()
+    text: Optional[str] = Field()
+    tags: Optional[List[str]] = Field()
+    image: Optional[str] = Field()
+    related_posts: Optional[List[RelatedPostDataInPost]] = Field()
+    related_products: Optional[List[RelatedProductDataInPost]] = Field()
+    category: Optional[str] = Field()
+    seo_text: Optional[str] = Field()
+    keywords: Optional[List[str]] = Field()
+    source_title: Optional[str] = Field()
+    source_url: Optional[str] = Field()
+
+
+class PostsUpdate(Model):
+    """
+    Schema for updating post
+    """
+
+    title: Optional[str] = Field()
+    url: str = Field()
+    page_title: str = Field()
+    publish_date: DateTime = Field()
+    author: Optional[AuthorInPost] = Field()
+    reading_estimate: Optional[int] = Field()
+    summary: Optional[str] = Field()
+    text: Optional[str] = Field()
+    tags: Optional[List[str]] = Field()
+    image: Optional[str] = Field()
+    related_posts: Optional[List[RelatedPostDataInPost]] = Field()
+    related_products: Optional[List[RelatedProductDataInPost]] = Field()
+    category: Optional[str] = Field()
+    seo_text: Optional[str] = Field()
+    keywords: Optional[List[str]] = Field()
+    source_title: Optional[str] = Field()
+    source_url: Optional[str] = Field()
+
+
+class PostsPartialUpdate(Model):
+    """
+    Schema for partial updating post by user
+    """
+
+    title: Optional[str] = Field()
+    url: Optional[str] = Field()
+    page_title: Optional[str] = Field()
+    publish_date: Optional[DateTime] = Field()
+    author: Optional[AuthorInPost] = Field()
+    reading_estimate: Optional[int] = Field()
+    summary: Optional[str] = Field()
+    text: Optional[str] = Field()
+    tags: Optional[List[str]] = Field()
+    image: Optional[str] = Field()
+    related_posts: Optional[List[RelatedPostDataInPost]] = Field()
+    related_products: Optional[List[RelatedProductDataInPost]] = Field()
+    category: Optional[str] = Field()
+    seo_text: Optional[str] = Field()
+    keywords: Optional[List[str]] = Field()
+    source_title: Optional[str] = Field()
+    source_url: Optional[str] = Field()
+
+
+class PostsOut(Model):
     """
     Schema for returning  post data to user
     """
 
-    id: ObjectId = Field()
-    owner_id: ObjectId = Field()
     title: Optional[str] = Field()
+    url: Optional[str] = Field()
+    page_title: Optional[str] = Field()
+    publish_date: Optional[DateTime] = Field()
+    author: Optional[AuthorInPost] = Field()
+    reading_estimate: Optional[int] = Field()
+    summary: Optional[str] = Field()
+    text: Optional[str] = Field()
     tags: Optional[List[str]] = Field()
-    body: Optional[str] = Field()
-    post_type: Optional[PostsType] = Field()
-    privacy: Optional[PostsPrivacySetting] = Field()
-    created_at: DateTime = Field()
-    status: Optional[PostsStatus] = Field()
-    hits: Optional[int] = Field()
-    like_count: Optional[int] = Field()
-    poll_choices: Optional[List[PollChoicesOut]] = Field()
-    poll_expiration: Optional[DateTime] = Field()
-    poll_status: Optional[PollStatus] = Field()
-    poll_type: Optional[PollType] = Field()
-    poll_vote_count: Optional[int] = Field()
-    images: Optional[List[str]] = Field()
-    video: Optional[str] = Field()
+    image: Optional[str] = Field()
+    related_posts: Optional[List[RelatedPostDataInPost]] = Field()
+    related_products: Optional[List[RelatedProductDataInPost]] = Field()
     category: Optional[str] = Field()
-    user: Optional[UserNestedInPost] = Field()
+    seo_text: Optional[str] = Field()
+    keywords: Optional[List[str]] = Field()
+    source_title: Optional[str] = Field()
+    source_url: Optional[str] = Field()
 
 
-class UserPostsListOut(Model):
+class PostsListOut(Model):
     """
     Schema for returning list of posts and s
     """
     count: int = Field()
-    posts: List[UserPostsOut] = Field()
+    posts: List[PostsOut] = Field()
 
 
-class UserAdminOut(UserNestedInPost):
-    """
-    Schema for returning user data nested in post object to admin
-    """
-    pass
-
-
-class UserPostsAdminOut(Model):
+class PostsAdminOut(Model):
     """
     Schema for returning  post data to user
     """
 
     id: ObjectId = Field()
-    owner_id: ObjectId = Field()
     title: Optional[str] = Field()
+    url: Optional[str] = Field()
+    page_title: Optional[str] = Field()
+    publish_date: Optional[DateTime] = Field()
+    author: Optional[AuthorInPost] = Field()
+    reading_estimate: Optional[int] = Field()
+    summary: Optional[str] = Field()
+    text: Optional[str] = Field()
     tags: Optional[List[str]] = Field()
-    body: Optional[str] = Field()
-    post_type: Optional[PostsType] = Field()
-    privacy: Optional[PostsPrivacySetting] = Field()
+    image: Optional[str] = Field()
+    related_posts: Optional[List[RelatedPostDataInPost]] = Field()
+    related_products: Optional[List[RelatedProductDataInPost]] = Field()
+    category: Optional[str] = Field()
+    seo_text: Optional[str] = Field()
+    keywords: Optional[List[str]] = Field()
+    source_title: Optional[str] = Field()
+    source_url: Optional[str] = Field()
+    owner_id: ObjectId = Field()
     created_at: DateTime = Field()
+    updated_at: DateTime = Field()
     status: Optional[PostsStatus] = Field()
     hits: Optional[int] = Field()
     like_count: Optional[int] = Field()
-    comments_count: Optional[int] = Field()
-    poll_choices: Optional[List[PollChoicesOut]] = Field()
-    poll_expiration: Optional[DateTime] = Field()
-    poll_status: Optional[PollStatus] = Field()
-    poll_type: Optional[PollType] = Field()
-    poll_vote_count: Optional[int] = Field()
-    images: Optional[List[str]] = Field()
-    video: Optional[str] = Field()
-    category: Optional[str] = Field()
-    user: UserAdminOut = Field()
 
 
-class UserPostsListAdminOut(Model):
+class PostsListAdminOut(Model):
     """
     Schema for returning list of posts and s
     """
     count: int = Field()
     posts: List[UserPostsAdminOut] = Field()
 
-
-class FeedUser(CommentUser):
-    """
-    Pydantic schema for feed's user
-    """
-
-    headline: Optional[str] = Field()
-
-
-class FeedUserOut(Model):
-    """
-    Schema for returning  post data to user
-    """
-
-    id: ObjectId = Field()
-    user: Optional[FeedUser] = Field()
-    comment: Optional[List[Comment]] = Field(default=[])
-    comments_count: Optional[int] = Field(default=0)
-    owner_id: ObjectId = Field()
-    title: Optional[str] = Field()
-    tags: Optional[List[str]] = Field()
-    body: Optional[str] = Field()
-    post_type: PostsType = Field()
-    privacy: PostsPrivacySetting = Field()
-    created_at: DateTime = Field()
-    hits: Optional[int] = Field(default=0)
-    like_count: Optional[int] = Field(default=0)
-    is_liked: Optional[bool] = Field(default=False)
-    is_reported: Optional[bool] = Field(default=False)
-    poll_choices: Optional[List[PollChoicesOutFeed]] = Field()
-    poll_expiration: Optional[DateTime] = Field()
-    poll_status: Optional[PollStatus] = Field()
-    poll_type: Optional[PollType] = Field()
-    poll_vote_count: Optional[int] = Field()
-    video: Optional[str] = Field()
-    images: Optional[List[str]] = Field()
-    category: Optional[str] = Field()
-
-
-class FeedUserListOut(Model):
-    """
-    Schema for returning list of posts and s
-    """
-    count: int = Field()
-    posts: List[FeedUserOut] = Field()
