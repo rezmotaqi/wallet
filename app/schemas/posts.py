@@ -128,56 +128,20 @@ class UserPostsCreate(Model):
     """
     Schema for creating post by user
     """
+
+    title: Optional[str] = Field()
+    url: str = Field()
+    page_title: str = Field()
+
+
     privacy: PostsPrivacySetting = Field()
     post_type: PostsType = Field()
-    title: Optional[str] = Field()
     body: Optional[str] = Field()
     category: Optional[str] = Field()
     tags: Optional[List[str]] = Field()
-    poll_expiration: Optional[DateTime] = Field()
-    poll_type: Optional[PollType] = Field()
-    poll_choices: Optional[List[PollChoicesIn]] = Field()
+
     images: Optional[List[str]] = Field()
-    video: Optional[str] = Field()
 
-    @validator('body')
-    def validate_body_length(cls, v, values):
-        post_type = values.get('post_type')
-        if post_type in [PostsType.VIDEO_POST, PostsType.POLL_POST, PostsType.IMAGE_POST] \
-                and len(v) > 700:
-            raise ValueError('Max body length is 700 characters. ')
-        # TODO is max length a value that must be declared in env or settings ??
-        elif post_type == PostsType.TEXT_POST and len(v) > 2500:
-            raise ValueError('Max body length is 1200 characters. ')
-        elif post_type == PostsType.ARTICLE and len(v) > 21000:
-            raise ValueError('Max body length is 21000 characters. ')
-        return v
-
-    @root_validator()
-    def validate_poll(cls, values):
-        post_type = values.get('post_type')
-        is_poll = (post_type == PostsType.POLL_POST)
-        choices = values.get('poll_choices')
-        poll_fields = ['poll_expiration', 'poll_type', 'poll_choices']
-        not_none_values = {k for k, v in values.items() if v is not None}
-        if any(field in not_none_values for field in poll_fields):
-            if not is_poll:
-                raise ValueError('post_type is not POLL_POST but poll fields are provided. ')
-        if is_poll and not all(field in not_none_values for field in poll_fields):
-            raise ValueError('post_type is POLL_POST but required poll data is not provided')
-        if choices:
-            if len(choices) > 6:
-                raise ValueError('Maximum number of poll choices is 6. ')
-            if len(choices) < 2:
-                raise ValueError('Minimum number of poll choices is 2. ')
-        return values
-
-    @root_validator()
-    def validate_category_title(cls, values):
-        is_article = (values.get('post_type') == PostsType.ARTICLE)
-        if not is_article and (values.get('category') or values.get('title')):
-            raise ValueError("Category and title is only for article. ")
-        return values
 
 
 class UserPostUpdate(Model):

@@ -90,95 +90,19 @@ async def create_post(
         data: UserPostsCreate
 ):
     """
-    User
+    Admin
 
     Create post
 
     Authorization: Required
     """
 
-    if data.post_type == PostsType.IMAGE_POST.value and not data.images:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Images are not sent. "
-        )
-
     now = datetime.now()
-    user_result = await db.users.find_one(
-        {"_id": current_user.id},
-        {
-            "_id": 1,
-            "username": 1,
-            "user_type": 1,
-            "basic_info.first_name": 1,
-            "basic_info.last_name": 1,
-            "basic_info.avatar": 1,
-            "basic_info.cover": 1,
-            "basic_info.headline": 1,
-            "basic_info.company_name": 1
-        }
-    )
-    if not user_result:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Login"
-        )
 
-    user = {
-        'id': user_result.get('_id'),
-        'avatar': user_result.get('basic_info').get('avatar') if user_result.get('basic_info') else None,
-        'cover': user_result.get('basic_info').get('cover') if user_result.get('basic_info') else None,
-        'headline': user_result.get('basic_info').get('headline') if user_result.get('basic_info') else None,
-        'username': user_result.get('username'),
-        'user_type': user_result.get('user_type')
-    }
 
-    if user_result.get('user_type') == UserType.NORMAL.value:
-        user = {
-            **user,
-            'first_name': user_result.get('basic_info').get('first_name') if user_result.get('basic_info') else None,
-            'last_name': user_result.get('basic_info').get('last_name') if user_result.get('basic_info') else None,
-        }
-    elif user_result.get('user_type') == UserType.COMPANY.value:
-        user = {
-            **user,
-            'company_name': user_result.get('basic_info').get('company_name') if user_result.get(
-                'basic_info') else None,
-        }
 
-    extra_data = {
-        'created_at': now,
-        'updated_at': now,
-        'owner_id': current_user.id,
-        'status': PostsStatus.ACTIVE.value,
-        'user': user,
-        'hits': 0,
-        'like_count': 0
-    }
-    data = data.dict(exclude_unset=True)
-    if data.get('post_type') == PostsType.POLL_POST:
-        for choice in data.get('poll_choices'):
-            choice['choice_id'] = str(uuid.uuid4())
-            choice['votes'] = []
-            choice['vote_count'] = 0
 
-        data['poll_status'] = PollStatus.OPEN
-        data['poll_vote_count'] = 0
-
-    data = {**data, **extra_data}
-
-    result = await db.posts.insert_one(data)
-    if not result.acknowledged:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Could not create post. "
-        )
-
-    if data.get("post_type") == PostsType.IMAGE_POST.value:
-        for path in data.get("images"):
-            await move_image_from_temp(path)
-
-    return FeedUserOut.parse_obj({**data, 'id': result.inserted_id})
+    return
 
 
 @router.get('', response_model=UserPostsListOut, response_model_exclude_none=True)
