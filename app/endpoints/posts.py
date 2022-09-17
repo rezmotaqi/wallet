@@ -21,8 +21,6 @@ from app.config.settings import settings
 from app.core import depends
 from app.core.posts import (
     increment_posts_hits,
-    check_required_fields,
-
 )
 from app.core.uploads import move_image_from_temp
 from app.schemas.base import ObjectId, DateOrderBy
@@ -56,7 +54,7 @@ Route: /posts
 
 
 @router.post('')
-async def create_post(
+async def admin_create_post(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
         current_user: User = Depends(depends.permissions(["authenticated", "admin"])),
@@ -94,7 +92,7 @@ async def get_post_list(
 
     Get posts for user
 
-    Authorization: Required
+    Authorization: Not required
     """
     result = await db.posts.find({}, {}).skip(offset * limit).to_list(length=limit)
     posts = list(map(lambda x: (PostsOut.parse_obj({**x, 'id': x.get('_id')})), result))

@@ -258,5 +258,5 @@ class PostsListAdminOut(Model):
     Schema for returning list of posts and s
     """
     count: int = Field()
-    posts: List[UserPostsAdminOut] = Field()
+    posts: List[PostsAdminOut] = Field()
 
