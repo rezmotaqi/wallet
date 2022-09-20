@@ -101,7 +101,7 @@ class NormalUserSchemaAdminOut(Model):
     basic_info: Optional[NormalUserBasicInfoOut] = Field()
 
 
-class NormalUserInfoAdminOut(Model):
+class UserInfoAdminOut(Model):
     """
     Schema for returning user info to admin in user profile
     """
@@ -161,7 +161,7 @@ class PublicPortfolioPrivacySettingOut(Model):
     certification: Optional[bool] = Field(default=False)
 
 
-class NormalUserInfoOut(Model):
+class UserInfoOut(Model):
 
     """
     Schema for returning user info to admin in user profile
@@ -170,22 +170,6 @@ class NormalUserInfoOut(Model):
     id: ObjectId = Field()
     username: str = Field()
     basic_info: Optional[NormalUserBasicInfoOut] = Field(default_factory=NormalUserBasicInfoOut().dict)
-    contact_info: Optional[ContactInfoOut] = Field(default_factory=ContactInfoOut().dict)
-    user_type: Optional[UserType] = Field(default=None)
-    status: Optional[str] = Field(default=None)
-    public_portfolio: Optional[PublicPortfolioPrivacySettingOut] = Field(
-        default_factory=PublicPortfolioPrivacySettingOut().dict
-    )
-    password: bool = Field()
-
-
-class CompanyUserInfoOut(Model):
-    """
-    Schema for returning user info to admin in user profile
-    """
-    id: ObjectId = Field()
-    username: str = Field()
-    basic_info: Optional[CompanyUserBasicInfoOut] = Field(default_factory=CompanyUserBasicInfoOut().dict)
     contact_info: Optional[ContactInfoOut] = Field(default_factory=ContactInfoOut().dict)
     user_type: Optional[UserType] = Field(default=None)
     status: Optional[str] = Field(default=None)
@@ -222,21 +206,6 @@ class NormalUserBasicInfoIn(BaseUserBasicInfoIn):
     gender: Optional[Gender] = Field()
 
 
-class CompanyUserBasicInfoIn(BaseUserBasicInfoIn):
-    """
-    Schema for receiving company user basic info. Specific data to company user
-    """
-    company_name: Optional[str] = Field()
-
-
-class SocialAccounts(BaseModel):
-    """
-    Schema for user social profile links or ids
-    """
-    network: str = Field()
-    id: str = Field()
-
-
 class ContactInfoIn(Model):
     """
     Schema for user contact info
@@ -247,10 +216,9 @@ class ContactInfoIn(Model):
     address: Optional[str] = Field()
     website: Optional[str] = Field()
     email: Optional[EmailStr] = Field()
-    social_accounts: Optional[List[SocialAccounts]] = Field()
 
 
-class NormalUserInfoUpdate(Model):
+class UserInfoUpdate(Model):
     """
     Schema for updating all normal user data
     """
@@ -259,25 +227,9 @@ class NormalUserInfoUpdate(Model):
     contact_info: Optional[ContactInfoIn] = Field()
 
 
-class NormalUserInfoPartialUpdate(NormalUserInfoUpdate):
+class UserInfoPartialUpdate(UserInfoUpdate):
     """
     Schema for partial updating all normal user data
-    """
-    ...
-
-
-class CompanyUserInfoUpdate(Model):
-    """
-    Schema for updating all company user data
-    """
-
-    basic_info: Optional[CompanyUserBasicInfoIn]
-    contact_info: Optional[ContactInfoIn]
-
-
-class CompanyUserInfoPartialUpdate(CompanyUserInfoUpdate):
-    """
-    Schema for partial updating all company user data
     """
     ...
 
@@ -290,13 +242,6 @@ class UserCreate(Model):
     password2: SecretStr = Field()
     role: Optional[List[Roles]] = Field(default=["user"])
     status: Optional[UserStatus] = Field(default='active')
-    user_type: Optional[UserType] = Field()
-
-    @validator('user_type')
-    def user_type_validate(cls, v):
-        if v == UserType.GUEST:
-            raise ValueError('You can not create a user with guest user_type. ')
-        return v
 
 
 class UserChangePassword(Model):
@@ -402,88 +347,6 @@ class RequestedUser(Model):
     basic_info: FriendRequestBasicInfo = Field()
 
 
-class FriendsSchema(Model):
-    """
-    Schema for creating friend relationship between two users, is used when user requests another user
-    """
-    created_at: DateTime = Field(default_factory=datetime.now)
-    updated_at: DateTime = Field(default_factory=datetime.now)
-    status: Optional[ConnectionStatus] = Field(default='PENDING')
-    requester_user: RequesterUser = Field()
-    requested_user: RequestedUser = Field()
-
-
-class AddFriend(Model):
-    """
-    Schema for sending friend request
-    """
-    request_to_id: ObjectId = Field()
-
-
-class AcceptFriend(Model):
-    """
-    Schema for accepting friend request
-    """
-    requester_id: ObjectId = Field()
-
-
-class DenyFriend(Model):
-    """
-    Schema for denying friend request
-    """
-    requester_id: ObjectId = Field()
-
-
-class DeleteFriend(Model):
-    """
-    Schema for deleting friend
-    """
-    friend_id: ObjectId = Field()
-
-
-class FriendOutSchema(Model):
-    """
-    Schema for returning one friend
-    """
-
-    id: ObjectId = Field()
-    created_at: Optional[DateTime] = Field()
-    first_name: Optional[str] = Field()
-    last_name: Optional[str] = Field()
-    avatar: Optional[str] = Field()
-    cover: Optional[str] = Field()
-    headline: Optional[str] = Field()
-
-
-class FriendListOutSchema(Model):
-    """
-    Schema for returning list of friends
-    """
-
-    count: int = Field(default=0)
-    friends: Optional[List[FriendOutSchema]] = Field(default=[])
-
-
-class FriendRequestOutSchema(Model):
-    """
-    Schema for returning one friend request
-    """
-    id: ObjectId = Field()
-    created_at: DateTime = Field()
-    first_name: Optional[str] = Field()
-    last_name: Optional[str] = Field()
-    avatar: Optional[str] = Field()
-    headline: Optional[str] = Field()
-
-
-class FriendRequestListOutSchema(Model):
-    """
-    Schema for returning list of friend requests
-    """
-    count: int = Field()
-    requests: List[FriendOutSchema] = Field()
-
-
 class NotificationSchema(Model):
     """
     General schema for notifications system
@@ -506,19 +369,6 @@ class NotificationListOut(Model):
     """
     notifications: List[NotificationSchema]
     count: int = Field()
-
-
-class FriendsSuggestionOut(Model):
-    first_name: Optional[str] = Field(default=None)
-    last_name: Optional[str] = Field(default=None)
-    owner_id: Optional[ObjectId] = Field(default=None)
-    avatar: Optional[str] = Field(default=None)
-    headline: Optional[str] = Field(default=None)
-
-
-class FriendSuggestionsListOut(Model):
-    count: Optional[int] = Field(default=None)
-    users: Optional[List[FriendsSuggestionOut]] = Field(FriendsSuggestionOut().dict)
 
 
 class ParseDatabaseResultContactInfo(Model):
