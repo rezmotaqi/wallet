@@ -88,11 +88,11 @@ class Settings(BaseSettings):
     REDIS_DATABASE: Optional[str] = None
 
     KAVENEGAR_API_KEY: Optional[str] = None
-    KAVENEGAR_REGISTER_TEMPLATE: str = "LoginNetAll"
-    KAVENEGAR_LOGIN_TEMPLATE: str = "LoginNetAll"
-    KAVENEGAR_RECOVER_PASSWORD_TEMPLATE: str = "LoginNetAll"
-    KAVENEGAR_VERIFY: str = "LoginNetAll"
-    KAVENEGAR_SEND_INVOICE: str = "LoginNetAll"
+    KAVENEGAR_REGISTER_TEMPLATE: str = None
+    KAVENEGAR_LOGIN_TEMPLATE: str = None
+    KAVENEGAR_RECOVER_PASSWORD_TEMPLATE: str = None
+    KAVENEGAR_VERIFY: str = None
+    KAVENEGAR_SEND_INVOICE: str = None
 
     # Tax & VAT
     # TAX: float = 1.09
@@ -129,7 +129,7 @@ class Settings(BaseSettings):
 
     SMTP_SERVER: Optional[str] = None
     SMTP_PORT: Optional[int] = None
-    SENDER_EMAIL: Optional[str] = "register@netall.live"
+    SENDER_EMAIL: Optional[str] = None
     SMTP_SERVER_PASSWORD: Optional[str] = None
 
     # google social log in

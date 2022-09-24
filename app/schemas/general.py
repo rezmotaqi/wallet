@@ -120,78 +120,35 @@ class NotificationCategory(str, Enum):
     LIKE = 'LIKE'
 
 
-class EmploymentType(str, Enum):
-    FULL_TIME = 'FULL_TIME'
-    PART_TIME = 'PART_TIME'
-    SELF_EMPLOYED = "SELF_EMPLOYED"
-    FREELANCE = "FREELANCE"
-    CONTRACT = "CONTRACT"
-    APPRENTICESHIP = "APPRENTICESHIP"
-    SEASONAL = "SEASONAL"
-    INTERNSHIP = "INTERNSHIP"
-
-
-class PortfolioSection(str, Enum):
-
-    EXPERIENCE = 'experience'
-    WORK_SAMPLE = 'work_sample'
-    CERTIFICATION = 'certification'
-    SKILL = 'skill'
-
-
-class ConnectionStatus(str, Enum):
-    CONNECTED = 'CONNECTED'
-    PENDING = 'PENDING'
-    REJECTED = 'REJECTED'
-    NOT_CONNECTED = 'NOT_CONNECTED'
-    IS_REQUESTED = 'IS_REQUESTED'
-
-
-class FriendshipAction(str, Enum):
-    REQUEST = 'request'
-    ACCEPT = 'accept'
-    DELETE = 'delete'
-    DENY = 'deny'
-
-
 class DiscountAmountType(str, Enum):
     AMOUNT = 'AMOUNT'
     PERCENTAGE = 'PERCENTAGE'
 
 
-class EventOperatorType(str, Enum):
-    """
-    Type of operator users in event
-    """
-
-    ADMIN = 'ADMIN'
-    SPEAKER = 'SPEAKER'
-    TEACHER = 'TEACHER'
-    EXHIBITOR = 'EXHIBITOR'
+class TicketDepartment(str, Enum):
+    SUPPORT = 'SUPPORT'
+    TECH = 'TECH'
+    CONTENT = 'CONTENT'
+    FINANCE = 'FINANCE'
 
 
-class EventOperatorInSchedule(Model):
+class TicketInput(Model):
     """
-    Pydantic schema related to speaker or teacher used in schedule
+    Pydantic schema for creating ticket by client
     """
 
-    id: ObjectId = Field()
-    username: Optional[str] = Field()
-    user_type: Optional[UserType] = Field()
-    type: Optional[EventOperatorType] = Field(default=EventOperatorType.SPEAKER.value)
-    company_name: Optional[str] = Field()
-    first_name: Optional[str] = Field()
-    last_name: Optional[str] = Field()
-    avatar: Optional[str] = Field()
-    headline: Optional[str] = Field()
-    website: Optional[str] = Field()
-    linkedin: Optional[str] = Field()
+    title: str = Field()
+    text: str = Field()
+    department: TicketDepartment = Field()
 
 
-class UserSchedule(Model):
-    """Pydantic schema related to user schedule"""
-    date: DateTime = Field()
-    starts_at: Optional[DateTime] = Field()
-    ends_at: Optional[DateTime] = Field()
-    operator: Optional[List[EventOperatorInSchedule]] = Field()
-    description: Optional[str] = Field()
+class TicketOutput(Model):
+    """
+    Pydantic schema for returning ticket
+    """
+
+    id: str = Field()
+    title: str = Field()
+    text: str = Field()
+    department: TicketDepartment = Field()
+

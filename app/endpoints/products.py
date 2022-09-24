@@ -3,11 +3,10 @@ Products apis
 route: /products
 """
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 from bson import ObjectId as BaseObjectId
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, Depends, HTTPException
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo.errors import DuplicateKeyError
 from starlette import status
@@ -143,6 +142,37 @@ async def add_product_to_cart(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Could not update cart."
         )
+
+
+@router.post('/cart/finalize')
+async def finalize_cart(
+        db: AsyncIOMotorDatabase = Depends(depends.get_database),
+        current_user: User = Depends(depends.permissions(["authenticated"])),
+
+):
+    """
+    Client
+
+    Finalize user cart and return ipg link
+    """
+
+    user_cart_doc = await db.users.find_one({'_id': BaseObjectId(current_user.id)}, {'cart': 1})
+    if not user_cart_doc.get('cart'):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cart is empty")
+
+
+
+@router.get('/cart/finalize')
+async def ipg_callback(
+        db: AsyncIOMotorDatabase = Depends(depends.get_database)
+):
+    """
+    IPG callback
+    """
+
+
+    pass
+
 
 
 @router.get('/cart/{user_id}', response_model=CartOutput)
@@ -316,22 +346,6 @@ async def delete_product(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-# import sys
-# from datetime import datetime
-#
-# import requests
-# from django.shortcuts import re   nder
-# from django.http import HttpResponse
-# from django.shortcuts import redirect
-# from zeep import Client
-#
-# from django.conf import settings
-#
-# from panel.models import Order
-# from sms.utils import send_order_notif_sms, send_order_notif_sms_to_customer
-#
-# MERCHANT = '67b4ca7f-e25f-4d39-bfb8-cdd4f39377f4'
-#
 # if not settings.TEST:
 #     client = Client('https://www.zarinpal.com/pg/services/WebGate/wsdl')
 #

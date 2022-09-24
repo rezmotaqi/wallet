@@ -8,6 +8,7 @@ class ZarinPal:
     VERIFY_URL = "https://api.zarinpal.com/pg/v4/payment/verify.json"
     START_PAY_URL = "https://www.zarinpal.com/pg/StartPay/"
     MERCHANT_ID = "67b4ca7f-e25f-4d39-bfb8-cdd4f39377f4"
+    CALLBACK_URL = ""
 
     async def pay(
             self,
@@ -17,7 +18,7 @@ class ZarinPal:
         async with httpx.AsyncClient() as client:
             request = await client.post(
                 f"{self.PAYMENT_URL}?merchant_id={self.MERCHANT_ID}&amount={amount}"
-                f"&description={description}&callback_url={self.REDIRECT_URI}"
+                f"&description={description}&callback_url={self.CALLBACK_URL}"
             )
             if request.status_code == 200 and request.json().get("data") and not \
                     request.json().get("errors") and request.json().get("data").get("code") == 100:

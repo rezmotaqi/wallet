@@ -5,9 +5,8 @@ Route: "/posts"
 """
 
 import os
-import uuid
 from datetime import datetime
-from typing import Optional, Any, List
+from typing import Optional
 
 import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, Response

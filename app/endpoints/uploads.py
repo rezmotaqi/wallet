@@ -39,7 +39,6 @@ router = APIRouter()
 
 @router.post('/images', response_model=UploadImage)
 async def upload_images(
-        image_type: PortfolioImageType = Query(..., alias="collection"),
         current_user: User = Depends(depends.permissions(["authenticated"])),
         files: list[UploadFile] = File(..., max_items=20, alias="files[]"),
 ) -> Any:
@@ -59,18 +58,18 @@ async def upload_images(
 
     temp_dir = "tmp"
 
-    if not os.path.exists(f"{settings.MEDIA_DIR}{temp_dir}/{image_type}/{current_user.id}/images"):
-        os.makedirs(f"{settings.MEDIA_DIR}{temp_dir}/{image_type}/{current_user.id}/images")
+    if not os.path.exists(f"{settings.MEDIA_DIR}{temp_dir}/posts/{current_user.id}/images"):
+        os.makedirs(f"{settings.MEDIA_DIR}{temp_dir}/posts/{current_user.id}/images")
 
-    if not os.path.exists(f"{settings.MEDIA_DIR}{image_type}/{current_user.id}/images"):
-        os.makedirs(f"{settings.MEDIA_DIR}{image_type}/{current_user.id}/images")
+    if not os.path.exists(f"{settings.MEDIA_DIR}posts/{current_user.id}/images"):
+        os.makedirs(f"{settings.MEDIA_DIR}posts/{current_user.id}/images")
 
     for file in accepted_list:
 
         file_format = file.filename.split(".")[-1]
         file_format = "jpeg" if file_format == "jpg" else file_format
         file.filename = f"{uuid.uuid4()}.{file_format}"
-        file_path = f"{settings.MEDIA_DIR}{temp_dir}/{image_type}/{current_user.id}/images/{file.filename}"
+        file_path = f"{settings.MEDIA_DIR}{temp_dir}/posts/{current_user.id}/images/{file.filename}"
 
         async with aiofiles.open(file_path, 'wb') as out_file:
             content = await file.read()
@@ -79,7 +78,7 @@ async def upload_images(
             else:
                 await out_file.write(content)
 
-        paths.append(f"{image_type}/{current_user.id}/images/{file.filename}")
+        paths.append(f"posts/{current_user.id}/images/{file.filename}")
 
     if error_list:
         return JSONResponse(
@@ -211,13 +210,12 @@ async def admin_delete_user_image(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.delete('/portfolio')
-async def delete_experience_company_logo(
+@router.delete('/posts')
+async def delete_post_image(
         *,
         db: AsyncIOMotorDatabase = Depends(depends.get_database),
         current_user: User = Depends(depends.permissions(["authenticated"])),
         object_id: ObjectId,
-        image_type: PortfolioImageType
 ):
     """
     Delete work experience image
@@ -225,16 +223,16 @@ async def delete_experience_company_logo(
     Authorization: Required
     """
 
-    result = await db[image_type].find_one_and_update(
+    result = await db.posts.find_one_and_update(
         {'_id': object_id, "owner_id": current_user.id},
-        {'$unset': {"logo" if image_type == PortfolioImageType.COMPANY_LOGO else "image": None}},
-        projection={"logo" if image_type == PortfolioImageType.COMPANY_LOGO else "image": 1},
+        {'$unset': {"image": None}},
+        projection={"image": 1},
         return_document=ReturnDocument.BEFORE
     )
 
     try:
-        company_logo_path = result.get("logo" if image_type == PortfolioImageType.COMPANY_LOGO else "image")
-        path = os.path.join(settings.MEDIA_DIR, company_logo_path)
+        image_path = result.get("image")
+        path = os.path.join(settings.MEDIA_DIR, image_path)
         await aiofiles.os.remove(path)
     except Exception as e:
         print(e)
@@ -245,7 +243,7 @@ async def delete_experience_company_logo(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.post('/post/video')
+@router.post('/posts/video')
 async def upload_video(
         user: User = Depends(depends.permissions(["authenticated"])),
         file: UploadFile = File(...)
@@ -292,63 +290,63 @@ async def upload_video(
     return Upload(filename=processed_path)
 
 
-@router.post('/events/{event_id}', response_model=UploadImage)
-async def upload_event_media(
-        event_id: ObjectId,
-        db: AsyncIOMotorDatabase = Depends(depends.get_database),
-        current_user: User = Depends(depends.permissions(["authenticated"])),
-        files: list[UploadFile] = File(..., max_items=20, alias="files[]")
-):
-    """
-    Upload media for events
-    """
-
-    event_data = await db.events.find_one({"owner_id": current_user.id, "_id": event_id}, {"_id": 1})
-    if not event_data:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Could not upload media on this event"
-        )
-
-    accepted_list, error_list, paths = [], [], []
-    for file in files:
-        magic_bytes = await get_magic_bytes(file)
-        if (file.content_type not in settings.ALLOWED_IMAGE_TYPES and file.content_type not in
-            settings.ALLOWED_FILE_TYPES) or (file.content_type != magic.from_buffer(magic_bytes, mime=True)):
-            error_list.append(file.filename)
-        else:
-            accepted_list.append(file)
-
-    temp_dir = "tmp"
-
-    if not os.path.exists(f"{settings.MEDIA_DIR}{temp_dir}/events/{event_id}/{current_user.id}/files"):
-        os.makedirs(f"{settings.MEDIA_DIR}{temp_dir}/events/{event_id}/{current_user.id}/files")
-
-    if not os.path.exists(f"{settings.MEDIA_DIR}events/{event_id}/{current_user.id}/files"):
-        os.makedirs(f"{settings.MEDIA_DIR}events/{event_id}/{current_user.id}/files")
-
-    for file in accepted_list:
-
-        file_format = file.filename.split(".")[-1]
-        file_format = "jpeg" if file_format == "jpg" else file_format
-        file.filename = f"{uuid.uuid4()}.{file_format}"
-        file_path = f"{settings.MEDIA_DIR}{temp_dir}/events/{event_id}/{current_user.id}/files/{file.filename}"
-
-        async with aiofiles.open(file_path, 'wb') as out_file:
-            content = await file.read()
-            if len(content) > 10 * (10 ** 6):
-                error_list.append(file.filename)
-            else:
-                await out_file.write(content)
-
-        paths.append(f"events/{event_id}/{current_user.id}/files/{file.filename}")
-
-    if error_list:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"images": paths, "status": False, "message": f"{error_list} these images failed to be uploaded"}
-        )
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={"images": paths, "status": True, "message": "Images uploaded successfully"}
-    )
+# @router.post('/events/{event_id}', response_model=UploadImage)
+# async def upload_event_media(
+#         event_id: ObjectId,
+#         db: AsyncIOMotorDatabase = Depends(depends.get_database),
+#         current_user: User = Depends(depends.permissions(["authenticated"])),
+#         files: list[UploadFile] = File(..., max_items=20, alias="files[]")
+# ):
+#     """
+#     Upload media for events
+#     """
+#
+#     event_data = await db.events.find_one({"owner_id": current_user.id, "_id": event_id}, {"_id": 1})
+#     if not event_data:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail="Could not upload media on this event"
+#         )
+#
+#     accepted_list, error_list, paths = [], [], []
+#     for file in files:
+#         magic_bytes = await get_magic_bytes(file)
+#         if (file.content_type not in settings.ALLOWED_IMAGE_TYPES and file.content_type not in
+#             settings.ALLOWED_FILE_TYPES) or (file.content_type != magic.from_buffer(magic_bytes, mime=True)):
+#             error_list.append(file.filename)
+#         else:
+#             accepted_list.append(file)
+#
+#     temp_dir = "tmp"
+#
+#     if not os.path.exists(f"{settings.MEDIA_DIR}{temp_dir}/events/{event_id}/{current_user.id}/files"):
+#         os.makedirs(f"{settings.MEDIA_DIR}{temp_dir}/events/{event_id}/{current_user.id}/files")
+#
+#     if not os.path.exists(f"{settings.MEDIA_DIR}events/{event_id}/{current_user.id}/files"):
+#         os.makedirs(f"{settings.MEDIA_DIR}events/{event_id}/{current_user.id}/files")
+#
+#     for file in accepted_list:
+#
+#         file_format = file.filename.split(".")[-1]
+#         file_format = "jpeg" if file_format == "jpg" else file_format
+#         file.filename = f"{uuid.uuid4()}.{file_format}"
+#         file_path = f"{settings.MEDIA_DIR}{temp_dir}/events/{event_id}/{current_user.id}/files/{file.filename}"
+#
+#         async with aiofiles.open(file_path, 'wb') as out_file:
+#             content = await file.read()
+#             if len(content) > 10 * (10 ** 6):
+#                 error_list.append(file.filename)
+#             else:
+#                 await out_file.write(content)
+#
+#         paths.append(f"events/{event_id}/{current_user.id}/files/{file.filename}")
+#
+#     if error_list:
+#         return JSONResponse(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             content={"images": paths, "status": False, "message": f"{error_list} these images failed to be uploaded"}
+#         )
+#     return JSONResponse(
+#         status_code=status.HTTP_200_OK,
+#         content={"images": paths, "status": True, "message": "Images uploaded successfully"}
+#     )
