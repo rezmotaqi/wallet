@@ -124,7 +124,7 @@ class Settings(BaseSettings):
     RSA_PRVK: Optional[str] = None
 
     USE_SMS: Optional[bool] = None
-    MAILGUN_DOMAIN: Optional[str] = "https://api.eu.mailgun.net/v3/netall.live/messages"
+    MAILGUN_DOMAIN: Optional[str] = "https://api.eu.mailgun.net/v3/{domain}/messages"
     MAILGUN_KEY: Optional[str] = None
 
     SMTP_SERVER: Optional[str] = None
